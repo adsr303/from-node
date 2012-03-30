@@ -10,14 +10,15 @@ module FromNode
         @node = args.shift
         init_pre_from_node(*args)
         self.class.xpath_attr_mapping.each do |k, n|
-          send(k, REXML::XPath.first(@node, n).to_s)
+          send(k, REXML::XPath.first(@node, *n).to_s)
         end
       end
     }
 
-    def klass.xpath_attr(name, xpath)
+    def klass.xpath_attr(name, xpath=nil, namespaces={})
       attr_accessor name
-      @xpath_attr_mapping["#{name.to_s}=".to_sym] = xpath
+      xpath = "@#{name.to_s}" if xpath.nil?
+      @xpath_attr_mapping["#{name.to_s}=".to_sym] = [xpath, namespaces]
     end
 
     def klass.xpath_attr_mapping

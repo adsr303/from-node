@@ -9,6 +9,18 @@ class TestFromNode < Test::Unit::TestCase
   end
 
 
+  class AttrWithoutXPath
+    include FromNode
+    xpath_attr :b
+  end
+
+  def test_attr_without_xpath
+    doc = xml('<a b="123"/>')
+    a = AttrWithoutXPath.new(doc.root)
+    assert_equal('123', a.b)
+  end
+
+
   class AttrWithXPath
     include FromNode
     xpath_attr :b, "@b"
@@ -30,5 +42,17 @@ class TestFromNode < Test::Unit::TestCase
     doc = xml('<a><b c="123"/></a>')
     a = AttrInSubnodeWithXPath.new(doc.root)
     assert_equal('123', a.c)
+  end
+
+
+  class AttrWithXPathAndNamespace
+    include FromNode
+    xpath_attr :c, "n:b/@c", {"n" => "bar"}
+  end
+
+  def test_attr_with_xpath_and_namespace
+    doc = xml('<m:a xmlns:m="bar"><m:b c="xyz"/></m:a>')
+    a = AttrWithXPathAndNamespace.new(doc.root)
+    assert_equal('xyz', a.c)
   end
 end
