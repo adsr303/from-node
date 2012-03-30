@@ -1,0 +1,8 @@
+FromNode
+========
+
+This is a Ruby module that maps XPaths under an XML node to members of
+a class. The purpose is to allow the developer to use simple definitions
+in case of a non-trivial value to member mapping, e.g. when member names
+are different than attribute names or an object is represented by a
+nested XML structure.
