@@ -55,4 +55,28 @@ class TestFromNode < Test::Unit::TestCase
     a = AttrWithXPathAndNamespace.new(doc.root)
     assert_equal('xyz', a.c)
   end
+
+
+  class AttrListWithXPath
+    include FromNode
+    xpath_attr_list :c, "b/@c"
+  end
+
+  def test_attr_list_with_xpath
+    doc = xml('<a><b c="x"/><b c="y"/><b c="z"/></a>')
+    a = AttrListWithXPath.new(doc.root)
+    assert_equal(['x', 'y', 'z'], a.c)
+  end
+
+
+  class AttrListWithTextXPath
+    include FromNode
+    xpath_attr_list :c, "b/text()"
+  end
+
+  def test_attr_list_with_text_xpath
+    doc = xml('<a><b>foo</b><b>bar</b></a>')
+    a = AttrListWithTextXPath.new(doc.root)
+    assert_equal(['foo', 'bar'], a.c)
+  end
 end
