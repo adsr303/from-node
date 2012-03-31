@@ -5,7 +5,8 @@ module FromNode
     klass.class_eval {
       @xpath_attr_mapping = {}
       @xpath_attr_list_mapping = {}
-      @xpath_attr_child_mapping = {}
+      @xpath_child_mapping = {}
+      @xpath_child_list_mapping = {}
 
       alias_method :init_pre_from_node, :initialize
       def initialize(*args)
@@ -23,9 +24,17 @@ module FromNode
           end
         end
 
-        self.class.xpath_attr_child_mapping.each do |k, n|
+        self.class.xpath_child_mapping.each do |k, n|
           xpath, clazz, namespaces = n
           send(k, clazz.new(REXML::XPath.first(@node, xpath, namespaces)))
+        end
+
+        self.class.xpath_child_list_mapping.each do |k, n|
+          send("#{k.to_s}=".to_sym, [])
+          xpath, clazz, namespaces = n
+          REXML::XPath.each(@node, xpath, namespaces) do |v|
+            send(k) << clazz.new(v)
+          end
         end
       end
     }
@@ -43,8 +52,13 @@ module FromNode
 
     def klass.xpath_child(name, xpath, clazz, namespaces={})
       attr_accessor name
-      @xpath_attr_child_mapping["#{name.to_s}=".to_sym] =
+      @xpath_child_mapping["#{name.to_s}=".to_sym] =
         [xpath, clazz, namespaces]
+    end
+
+    def klass.xpath_child_list(name, xpath, clazz, namespaces={})
+      attr_accessor name
+      @xpath_child_list_mapping[name] = [xpath, clazz, namespaces]
     end
 
     def klass.xpath_attr_mapping
@@ -55,8 +69,12 @@ module FromNode
       @xpath_attr_list_mapping
     end
 
-    def klass.xpath_attr_child_mapping
-      @xpath_attr_child_mapping
+    def klass.xpath_child_mapping
+      @xpath_child_mapping
+    end
+
+    def klass.xpath_child_list_mapping
+      @xpath_child_list_mapping
     end
   end
 end

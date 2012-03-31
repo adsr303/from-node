@@ -99,4 +99,16 @@ class TestFromNode < Test::Unit::TestCase
     assert_kind_of(AttrWithoutXPath, a.z)
     assert_equal('8', a.z.b)
   end
+
+
+  class AttrChildListWithXPath
+    include FromNode
+    xpath_child_list :z, "z", AttrWithoutXPath
+  end
+
+  def test_attr_child_class_list
+    doc = xml('<a><z b="8"/><z b="2"/></a>')
+    a = AttrChildListWithXPath.new(doc.root)
+    assert_equal(['8', '2'], a.z.collect {|z| z.b })
+  end
 end
