@@ -79,4 +79,24 @@ class TestFromNode < Test::Unit::TestCase
     a = AttrListWithTextXPath.new(doc.root)
     assert_equal(['foo', 'bar'], a.c)
   end
+
+
+  def test_attr_hash_with_xpath
+    # TODO
+  end
+
+
+  class AttrChildWithXPath
+    include FromNode
+    xpath_attr :a1
+    xpath_child :z, "z", AttrWithoutXPath
+  end
+
+  def test_attr_child_class
+    doc = xml('<a a1="5"><z b="8"/></a>')
+    a = AttrChildWithXPath.new(doc.root)
+    assert_equal('5', a.a1)
+    assert_kind_of(AttrWithoutXPath, a.z)
+    assert_equal('8', a.z.b)
+  end
 end
