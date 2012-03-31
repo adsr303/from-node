@@ -68,6 +68,15 @@ module FromNode
       xpath_attr_list(name, xpath, namespaces) {|v| clazz.new(v) }
     end
 
+    def klass.xpath_child_hash(name, xpath, key_xpath, val_xpath, clazz,
+                               namespaces={})
+      xpath_attr_hash(name, xpath, key_xpath, val_xpath, namespaces) {|v|
+        key = REXML::XPath.first(v, key_xpath).to_s
+        val = clazz.new(REXML::XPath.first(v, val_xpath))
+        [key, val]
+      }
+    end
+
     def klass.xpath_attr_mapping
       @xpath_attr_mapping
     end

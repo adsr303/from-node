@@ -129,6 +129,22 @@ class TestFromNode < Test::Unit::TestCase
   end
 
 
+  class AttrHashWithXPathAndBlock
+    include FromNode
+    xpath_attr_hash(:b, "node()") {|v|
+      key = REXML::XPath.first(v, "name()").to_s
+      val = REXML::XPath.first(v, "text()").to_s.to_i
+      [key, val]
+    }
+  end
+
+  def test_attr_hash_with_xpath_and_block
+    doc = xml('<a><g>8</g><m>12</m></a>')
+    a = AttrHashWithXPathAndBlock.new(doc.root)
+    assert_equal({'g' => 8, 'm' => 12}, a.b)
+  end
+
+
   class AttrChildWithXPath
     include FromNode
     xpath_attr :a1
@@ -153,5 +169,18 @@ class TestFromNode < Test::Unit::TestCase
     doc = xml('<a><z b="8"/><z b="2"/></a>')
     a = AttrChildListWithXPath.new(doc.root)
     assert_equal(['8', '2'], a.z.collect {|z| z.b })
+  end
+
+
+  class AttrChildHashWithXPath
+    include FromNode
+    xpath_child_hash :z, "z", "@k", ".", AttrWithoutXPath
+  end
+
+  def test_attr_child_class_hash
+    doc = xml('<a><z k="p" b="8"/><z k="q" b="2"/></a>')
+    a = AttrChildHashWithXPath.new(doc.root)
+    assert_equal('8', a.z['p'].b)
+    assert_equal('2', a.z['q'].b)
   end
 end
