@@ -33,6 +33,18 @@ class TestFromNode < Test::Unit::TestCase
   end
 
 
+  class AttrWithXPathAndBlock
+    include FromNode
+    xpath_attr(:b, "@b") {|b| b.to_s.to_i }
+  end
+
+  def test_attr_with_xpath_and_block
+    doc = xml('<a b="123"/>')
+    a = AttrWithXPathAndBlock.new(doc.root)
+    assert_equal(123, a.b)
+  end
+
+
   class AttrInSubnodeWithXPath
     include FromNode
     xpath_attr :c, "b/@c"
@@ -81,8 +93,39 @@ class TestFromNode < Test::Unit::TestCase
   end
 
 
+  class AttrListWithText
+    include FromNode
+    xpath_attr_list :b
+  end
+
+  def test_attr_list_with_text
+    doc = xml('<a><b>foo</b><b>bar</b></a>')
+    a = AttrListWithText.new(doc.root)
+    assert_equal(['foo', 'bar'], a.b)
+  end
+
+
+  class AttrListWithXPathAndBlock
+    include FromNode
+    xpath_attr_list(:c, "b/@c") {|c| c.to_s.to_i }
+  end
+
+  def test_attr_list_with_xpath_and_block
+    doc = xml('<a><b c="9"/><b c="12"/><b c="8"/></a>')
+    a = AttrListWithXPathAndBlock.new(doc.root)
+    assert_equal([9, 12, 8], a.c)
+  end
+
+
+  class AttrHashWithXPath
+    include FromNode
+    xpath_attr_hash :b, "b", "@key", "@val"
+  end
+
   def test_attr_hash_with_xpath
-    # TODO
+    doc = xml('<a><b key="g" val="h"/><b key="m" val="n"/></a>')
+    a = AttrHashWithXPath.new(doc.root)
+    assert_equal({'g' => 'h', 'm' => 'n'}, a.b)
   end
 
 

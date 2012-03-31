@@ -11,49 +11,61 @@ module FromNode
         init_pre_from_node(*args)
 
         self.class.xpath_attr_mapping.each do |k, n|
-          n = n.clone
-          case n.shift
+          type, xpath, namespaces, block = n
+          case type
           when :attr
-            send("#{k.to_s}=".to_sym, REXML::XPath.first(@node, *n).to_s)
+            send("#{k.to_s}=".to_sym,
+                 block[REXML::XPath.first(@node, xpath, namespaces)])
           when :attrlist
             send("#{k.to_s}=".to_sym, [])
-            REXML::XPath.each(@node, *n) do |v|
-              send(k) << v.to_s
-            end
-          when :child
-            xpath, clazz, namespaces = n
-            send("#{k.to_s}=".to_sym,
-                 clazz.new(REXML::XPath.first(@node, xpath, namespaces)))
-          when :childlist
-            send("#{k.to_s}=".to_sym, [])
-            xpath, clazz, namespaces = n
             REXML::XPath.each(@node, xpath, namespaces) do |v|
-              send(k) << clazz.new(v)
+              send(k) << block[v]
+            end
+          when :attrhash
+            send("#{k.to_s}=".to_sym, {})
+            REXML::XPath.each(@node, xpath, namespaces) do |v|
+              key, val = block[v]
+              send(k)[key] = val
             end
           end
         end
       end
     }
 
-    def klass.xpath_attr(name, xpath=nil, namespaces={})
+    def klass.xpath_attr(name, xpath=nil, namespaces={}, &block)
       attr_accessor name
       xpath = "@#{name.to_s}" if xpath.nil?
-      @xpath_attr_mapping[name] = [:attr, xpath, namespaces]
+      block = Proc.new {|v| v.to_s } unless block_given?
+      @xpath_attr_mapping[name] = [:attr, xpath, namespaces, block]
     end
 
-    def klass.xpath_attr_list(name, xpath, namespaces={})
+    def klass.xpath_attr_list(name, xpath=nil, namespaces={}, &block)
       attr_accessor name
-      @xpath_attr_mapping[name] = [:attrlist, xpath, namespaces]
+      xpath = "#{name.to_s}/text()" if xpath.nil?
+      block = Proc.new {|v| v.to_s } unless block_given?
+      @xpath_attr_mapping[name] = [:attrlist, xpath, namespaces, block]
+    end
+
+    def klass.xpath_attr_hash(name, xpath=nil, key_xpath=nil, val_xpath=nil,
+                              namespaces={}, &block)
+      attr_accessor name
+      xpath = "@#{name.to_s}" if xpath.nil?
+      unless block_given?
+        block = Proc.new {|v|
+          key = REXML::XPath.first(v, key_xpath).to_s
+          val = REXML::XPath.first(v, val_xpath).to_s
+          [key, val]
+        }
+      end
+      @xpath_attr_mapping[name] = [:attrhash, xpath, namespaces, block]
     end
 
     def klass.xpath_child(name, xpath, clazz, namespaces={})
-      attr_accessor name
-      @xpath_attr_mapping[name] = [:child, xpath, clazz, namespaces]
+      xpath_attr(name, xpath, namespaces) {|v| clazz.new(v) }
     end
 
     def klass.xpath_child_list(name, xpath, clazz, namespaces={})
-      attr_accessor name
-      @xpath_attr_mapping[name] = [:childlist, xpath, clazz, namespaces]
+      xpath_attr_list(name, xpath, namespaces) {|v| clazz.new(v) }
     end
 
     def klass.xpath_attr_mapping
