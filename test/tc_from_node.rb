@@ -151,6 +151,30 @@ class TestFromNode < Test::Unit::TestCase
   end
 
 
+  class AttrHashWithBlock
+    include FromNode
+    xpath_attr_hash(:b) {|v|
+      key = REXML::XPath.first(v, "@id").to_s
+      val = (REXML::XPath.first(v, "@content") ||
+             REXML::XPath.first(v, "text()")).to_s
+      [key, val]
+    }
+  end
+
+  def test_attr_hash_with_xpath_and_block
+    s = <<-EOF
+    <a>
+      <b id="c1" content="Content 1"/>
+      <b id="c2">Some other content</b>
+    </a>
+    EOF
+    doc = xml(s)
+    a = AttrHashWithBlock.new(doc.root)
+    assert_equal('Content 1', a.b['c1'])
+    assert_equal('Some other content', a.b['c2'])
+  end
+
+
   class AttrChildWithXPath
     include FromNode
     xpath_attr :a1

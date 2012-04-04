@@ -6,9 +6,9 @@ module FromNode
       @xpath_attr_mapping = {}
 
       alias_method :init_pre_from_node, :initialize
-      def initialize(*args)
-        @node = args.shift
+      def initialize(node, *args)
         init_pre_from_node(*args)
+        @node = node
 
         self.class.xpath_attr_mapping.each do |k, n|
           type, xpath, namespaces, block = n
@@ -49,7 +49,7 @@ module FromNode
     def klass.xpath_attr_hash(name, xpath=nil, key_xpath=nil, val_xpath=nil,
                               namespaces={}, &block)
       attr_accessor name
-      xpath = "@#{name.to_s}" if xpath.nil?
+      xpath = name.to_s if xpath.nil?
       unless block_given?
         block = Proc.new {|v|
           key = REXML::XPath.first(v, key_xpath).to_s

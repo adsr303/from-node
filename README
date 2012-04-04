@@ -1,2 +1,2 @@
 FromNode is a Ruby mixin module that simplifies creation of objects based
-on REXML-parsed XML nodes.
+on REXML-parsed XML nodes. See unit tests for usage examples.
