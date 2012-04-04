@@ -35,7 +35,7 @@ module FromNode
     def klass.xpath_attr(name, xpath=nil, namespaces={}, &block)
       attr_accessor name
       xpath = "@#{name.to_s}" if xpath.nil?
-      block = Proc.new {|v| v.to_s } unless block_given?
+      block = Proc.new {|v| v.to_s unless v.nil? } unless block_given?
       @xpath_attr_mapping[name] = [:attr, xpath, namespaces, block]
     end
 
@@ -61,7 +61,7 @@ module FromNode
     end
 
     def klass.xpath_child(name, xpath, clazz, namespaces={})
-      xpath_attr(name, xpath, namespaces) {|v| clazz.new(v) }
+      xpath_attr(name, xpath, namespaces) {|v| clazz.new(v) unless v.nil? }
     end
 
     def klass.xpath_child_list(name, xpath, clazz, namespaces={})

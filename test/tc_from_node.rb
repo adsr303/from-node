@@ -32,6 +32,12 @@ class TestFromNode < Test::Unit::TestCase
     assert_equal('123', a.b)
   end
 
+  def test_attr_with_xpath_missing_attr
+    doc = xml('<a><x/></a>')
+    a = AttrWithXPath.new(doc.root)
+    assert(a.b.nil?)
+  end
+
 
   class AttrWithXPathAndBlock
     include FromNode
@@ -157,6 +163,13 @@ class TestFromNode < Test::Unit::TestCase
     assert_equal('5', a.a1)
     assert_kind_of(AttrWithoutXPath, a.z)
     assert_equal('8', a.z.b)
+  end
+
+  def test_attr_child_class_missing
+    doc = xml('<a a1="5"></a>')
+    a = AttrChildWithXPath.new(doc.root)
+    assert_equal('5', a.a1)
+    assert(a.z.nil?)
   end
 
 
