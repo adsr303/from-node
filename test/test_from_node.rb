@@ -150,13 +150,12 @@ class TestFromNode < Test::Unit::TestCase
   end
 
   def test_attr_hash_with_xpath_and_block
-    s = <<-EOF
+    doc = xml(<<-EOF)
     <a>
       <b id="c1" content="Content 1"/>
       <b id="c2">Some other content</b>
     </a>
     EOF
-    doc = xml(s)
     a = AttrHashWithBlock.new(doc.root)
     assert_equal('Content 1', a.b['c1'])
     assert_equal('Some other content', a.b['c2'])
@@ -207,5 +206,27 @@ class TestFromNode < Test::Unit::TestCase
     a = AttrChildHashWithXPath.new(doc.root)
     assert_equal('8', a.z['p'].b)
     assert_equal('2', a.z['q'].b)
+  end
+
+
+  class NestedChildA
+  end
+
+  class NestedChildB
+    include FromNode
+    xpath_child_list :a, "a", NestedChildA
+  end
+
+  class NestedChildA
+    include FromNode
+    xpath_child_list :b, "b", NestedChildB
+  end
+
+  def test_nested_children
+    doc = xml('<a><b><a/><a/></b><b/></a>')
+    a = NestedChildA.new(doc.root)
+    assert_equal(2, a.b.size)
+    assert_equal(2, a.b[0].a.size)
+    assert(a.b[1].a.empty?)
   end
 end
