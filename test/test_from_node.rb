@@ -41,7 +41,7 @@ class TestFromNode < Test::Unit::TestCase
 
   class AttrWithXPathAndBlock
     include FromNode
-    xpath_attr(:b, "@b") {|b| b.to_s.to_i }
+    xpath_attr(:b, "@b") { |b,| b.to_s.to_i }
   end
 
   def test_attr_with_xpath_and_block
@@ -60,18 +60,6 @@ class TestFromNode < Test::Unit::TestCase
     doc = xml('<a><b c="123"/></a>')
     a = AttrInSubnodeWithXPath.new(doc.root)
     assert_equal('123', a.c)
-  end
-
-
-  class AttrWithXPathAndNamespace
-    include FromNode
-    xpath_attr :c, "n:b/@c", {"n" => "bar"}
-  end
-
-  def test_attr_with_xpath_and_namespace
-    doc = xml('<m:a xmlns:m="bar"><m:b c="xyz"/></m:a>')
-    a = AttrWithXPathAndNamespace.new(doc.root)
-    assert_equal('xyz', a.c)
   end
 
 
@@ -113,7 +101,7 @@ class TestFromNode < Test::Unit::TestCase
 
   class AttrListWithXPathAndBlock
     include FromNode
-    xpath_attr_list(:c, "b/@c") {|c| c.to_s.to_i }
+    xpath_attr_list(:c, "b/@c") { |c,| c.to_s.to_i }
   end
 
   def test_attr_list_with_xpath_and_block
@@ -137,9 +125,9 @@ class TestFromNode < Test::Unit::TestCase
 
   class AttrHashWithXPathAndBlock
     include FromNode
-    xpath_attr_hash(:b, "node()") {|v|
-      key = REXML::XPath.first(v, "name()").to_s
-      val = REXML::XPath.first(v, "text()").to_s.to_i
+    xpath_attr_hash(:b, "node()") { |v, n|
+      key = REXML::XPath.first(v, "name()", n).to_s
+      val = REXML::XPath.first(v, "text()", n).to_s.to_i
       [key, val]
     }
   end
@@ -153,10 +141,10 @@ class TestFromNode < Test::Unit::TestCase
 
   class AttrHashWithBlock
     include FromNode
-    xpath_attr_hash(:b) {|v|
-      key = REXML::XPath.first(v, "@id").to_s
-      val = (REXML::XPath.first(v, "@content") ||
-             REXML::XPath.first(v, "text()")).to_s
+    xpath_attr_hash(:b) { |v, n|
+      key = REXML::XPath.first(v, "@id", n).to_s
+      val = (REXML::XPath.first(v, "@content", n) ||
+             REXML::XPath.first(v, "text()", n)).to_s
       [key, val]
     }
   end
@@ -205,7 +193,7 @@ class TestFromNode < Test::Unit::TestCase
   def test_attr_child_class_list
     doc = xml('<a><z b="8"/><z b="2"/></a>')
     a = AttrChildListWithXPath.new(doc.root)
-    assert_equal(['8', '2'], a.z.collect {|z| z.b })
+    assert_equal(['8', '2'], a.z.collect { |z| z.b })
   end
 
 
